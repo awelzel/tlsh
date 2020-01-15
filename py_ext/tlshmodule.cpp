@@ -69,14 +69,24 @@ static PyObject* diff_py(PyObject* self, PyObject* args) {
   }
   
   Tlsh tlsh1, tlsh2;
+  char *badHash = NULL;
+  int score = 0;
+
+  Py_BEGIN_ALLOW_THREADS
+
   if (tlsh1.fromTlshStr(hash1) != 0) {
-    return PyErr_Format(PyExc_ValueError, "argument %s is not a TLSH hex string", hash1);
-  }
-  if (tlsh2.fromTlshStr(hash2) != 0) {
-    return PyErr_Format(PyExc_ValueError, "argument %s is not a TLSH hex string", hash2);
+    badHash = hash1;
+  } else if (tlsh2.fromTlshStr(hash2) != 0) {
+    badHash = hash2;
+  } else {
+    score = tlsh1.totalDiff(&tlsh2);
   }
 
-  int score = tlsh1.totalDiff(&tlsh2);
+  Py_END_ALLOW_THREADS
+
+  if (badHash) {
+    return PyErr_Format(PyExc_ValueError, "argument %r is not a TLSH hex string", badHash);
+  }
 
   return Py_BuildValue("i", score);
 }
@@ -89,14 +99,24 @@ static PyObject* diffxlen_py(PyObject* self, PyObject* args) {
   }
 
   Tlsh tlsh1, tlsh2;
+  char *badHash = NULL;
+  int score = 0;
+
+  Py_BEGIN_ALLOW_THREADS
+
   if (tlsh1.fromTlshStr(hash1) != 0) {
-    return PyErr_Format(PyExc_ValueError, "argument %s is not a TLSH hex string", hash1);
-  }
-  if (tlsh2.fromTlshStr(hash2) != 0) {
-    return PyErr_Format(PyExc_ValueError, "argument %s is not a TLSH hex string", hash2);
+    badHash = hash1;
+  } else if (tlsh2.fromTlshStr(hash2) != 0) {
+    badHash = hash2;
+  } else {
+    score = tlsh1.totalDiff(&tlsh2, false);
   }
 
-  int score = tlsh1.totalDiff(&tlsh2, false);
+  Py_END_ALLOW_THREADS
+
+  if (badHash) {
+    return PyErr_Format(PyExc_ValueError, "argument %r is not a TLSH hex string", badHash);
+  }
 
   return Py_BuildValue("i", score);
 }
